@@ -1,0 +1,296 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Tic Tac Toe</title>
+<style>
+  body {
+    background-color: #f8f9fa;
+    font-family: Arial, sans-serif;
+  }
+
+  #game-container {
+    text-align: center;
+    margin-top: 20px;
+  }
+
+  #click-to-play {
+    font-size: 24px;
+    color: #007bff;
+    margin-bottom: 10px;
+  }
+
+  #tic-tac-toe-title {
+    font-size: 36px;
+    font-weight: bold;
+    color: #333;
+    margin-bottom: 20px;
+  }
+
+  .board {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    grid-gap: 5px;
+    max-width: 300px;
+    background-color: #6c757d;
+    border-radius: 10px;
+    padding: 10px;
+    box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.2);
+    margin: 0 auto;
+  }
+
+  .cell {
+    border: 1px solid #333;
+    height: 100px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-size: 36px;
+    cursor: pointer;
+    background-color: #fff;
+    transition: background-color 0.3s ease;
+    border-radius: 10px;
+  }
+
+  .cell:hover {
+    background-color: #d9d9d9;
+  }
+
+  .strike-through {
+    text-decoration: line-through;
+    color: red;
+  }
+
+  .restart-btn, .play-computer-btn, .play-1-vs-1-btn {
+    margin-top: 20px;
+    padding: 10px 20px;
+    font-size: 16px;
+    color: white;
+    border: none;
+    cursor: pointer;
+    border-radius: 5px;
+    transition: background-color 0.3s ease;
+  }
+
+  .restart-btn {
+    background-color: #28a745;
+  }
+
+  .restart-btn:hover {
+    background-color: #218838;
+  }
+
+  .play-computer-btn {
+    background-color: #007bff;
+  }
+
+  .play-computer-btn:hover {
+    background-color: #0056b3;
+  }
+
+  .play-1-vs-1-btn {
+    background-color: #ffc107;
+  }
+
+  .play-1-vs-1-btn:hover {
+    background-color: #e0a800;
+  }
+
+  #message {
+    margin-top: 10px;
+    font-size: 18px;
+    font-weight: bold;
+    color: #343a40;
+  }
+</style>
+</head>
+<body>
+  <div id="game-container">
+    <div id="click-to-play">Click a block to play</div>
+    <div id="tic-tac-toe-title">Tic Tac Toe</div>
+    <div class="board" id="board">
+      <div class="cell" data-index="0"></div>
+      <div class="cell" data-index="1"></div>
+      <div class="cell" data-index="2"></div>
+      <div class="cell" data-index="3"></div>
+      <div class="cell" data-index="4"></div>
+      <div class="cell" data-index="5"></div>
+      <div class="cell" data-index="6"></div>
+      <div class="cell" data-index="7"></div>
+      <div class="cell" data-index="8"></div>
+    </div>
+    <button class="restart-btn" id="restartBtn">Restart</button>
+    <button class="play-computer-btn" id="playComputerBtn">Play with Computer</button>
+    <button class="play-1-vs-1-btn" id="play1vs1Btn">Play 1 vs 1</button>
+    <div id="message"></div>
+  </div>
+
+  <script>
+    const board = document.getElementById('board');
+    const cells = board.querySelectorAll('.cell');
+    const restartBtn = document.getElementById('restartBtn');
+    const playComputerBtn = document.getElementById('playComputerBtn');
+    const play1vs1Btn = document.getElementById('play1vs1Btn');
+    const message = document.getElementById('message');
+    let currentPlayer = 'X';
+    let gameActive = true;
+    let isVsComputer = true; // Flag to track game mode
+
+    const winningCombos = [
+      [0, 1, 2],
+      [3, 4, 5],
+      [6, 7, 8],
+      [0, 3, 6],
+      [1, 4, 7],
+      [2, 5, 8],
+      [0, 4, 8],
+      [2, 4, 6],
+    ];
+
+    cells.forEach(cell => cell.addEventListener('click', handleCellClick));
+    restartBtn.addEventListener('click', restartGame);
+    playComputerBtn.addEventListener('click', playWithComputer);
+    play1vs1Btn.addEventListener('click', play1vs1);
+
+    function handleCellClick() {
+      const cellIndex = parseInt(this.dataset.index);
+      if (cells[cellIndex].textContent !== '' || !gameActive) return;
+      cells[cellIndex].textContent = currentPlayer;
+      checkGameStatus();
+      currentPlayer = currentPlayer === 'X' ? 'O' : 'X';
+      if (isVsComputer && gameActive && currentPlayer === 'O') {
+        setTimeout(playComputerMove, 500); // Delay before computer moves
+      }
+    }
+
+    function checkGameStatus() {
+      for (const combo of winningCombos) {
+        const [a, b, c] = combo;
+        if (cells[a].textContent &&
+            cells[a].textContent === cells[b].textContent &&
+            cells[a].textContent === cells[c].textContent) {
+          cells[a].classList.add('strike-through');
+          cells[b].classList.add('strike-through');
+          cells[c].classList.add('strike-through');
+          gameActive = false;
+          message.textContent = `${cells[a].textContent} wins!`;
+          break;
+        }
+      }
+      if (!gameActive) {
+        cells.forEach(cell => cell.removeEventListener('click', handleCellClick));
+      } else if (!Array.from(cells).some(cell => cell.textContent === '')) {
+        gameActive = false;
+        message.textContent = "It's a draw!";
+      }
+    }
+
+    function restartGame() {
+      cells.forEach(cell => {
+        cell.textContent = '';
+        cell.classList.remove('strike-through');
+      });
+      gameActive = true;
+      currentPlayer = 'X';
+      message.textContent = '';
+      cells.forEach(cell => cell.addEventListener('click', handleCellClick));
+    }
+
+    function playWithComputer() {
+      isVsComputer = true;
+      restartGame();
+    }
+
+    function play1vs1() {
+      isVsComputer = false;
+      restartGame();
+    }
+
+    function playComputerMove() {
+      const availableCells = Array.from(cells).filter(cell => cell.textContent === '');
+      if (availableCells.length > 0 && gameActive) {
+        // Implementing hard difficulty by making the computer prioritize strategic moves
+        let moveMade = false;
+
+        // Check for winning move
+        for (const combo of winningCombos) {
+          const [a, b, c] = combo;
+          if (
+            cells[a].textContent === currentPlayer &&
+            cells[b].textContent === currentPlayer &&
+            cells[c].textContent === ''
+          ) {
+            cells[c].textContent = currentPlayer;
+            moveMade = true;
+            break;
+          } else if (
+            cells[a].textContent === currentPlayer &&
+            cells[c].textContent === currentPlayer &&
+            cells[b].textContent === ''
+          ) {
+            cells[b].textContent = currentPlayer;
+            moveMade = true;
+            break;
+          } else if (
+            cells[b].textContent === currentPlayer &&
+            cells[c].textContent === currentPlayer &&
+            cells[a].textContent === ''
+          ) {
+            cells[a].textContent = currentPlayer;
+            moveMade = true;
+            break;
+          }
+        }
+
+        // Block opponent's winning move
+        if (!moveMade) {
+          for (const combo of winningCombos) {
+            const [a, b, c] = combo;
+            if (
+              cells[a].textContent !== '' &&
+              cells[b].textContent !== '' &&
+              cells[c].textContent === '' &&
+              cells[a].textContent !== currentPlayer &&
+              cells[b].textContent !== currentPlayer
+            ) {
+              cells[c].textContent = currentPlayer;
+              moveMade = true;
+              break;
+            } else if (
+              cells[a].textContent !== '' &&
+              cells[c].textContent !== '' &&
+              cells[b].textContent === '' &&
+              cells[a].textContent !== currentPlayer &&
+              cells[c].textContent !== currentPlayer
+            ) {
+              cells[b].textContent = currentPlayer;
+              moveMade = true;
+              break;
+            } else if (
+              cells[b].textContent !== '' &&
+              cells[c].textContent !== '' &&
+              cells[a].textContent === '' &&
+              cells[b].textContent !== currentPlayer &&
+              cells[c].textContent !== currentPlayer
+            ) {
+              cells[a].textContent = currentPlayer;
+              moveMade = true;
+              break;
+            }
+          }
+        }
+
+        // If no strategic move available, choose a random cell
+        if (!moveMade) {
+          const randomCell = availableCells[Math.floor(Math.random() * availableCells.length)];
+          randomCell.textContent = currentPlayer;
+        }
+
+        checkGameStatus();
+        currentPlayer = currentPlayer === 'X' ? 'O' : 'X';
+      }
+    }
+  </script>
+</body>
+</html>
